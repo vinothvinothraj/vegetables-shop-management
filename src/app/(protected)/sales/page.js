@@ -638,7 +638,6 @@ export default function SalesPage() {
                     <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{t("printableBill")}</p>
                           <h4 className="text-lg font-semibold">{t("receipt")}</h4>
                         </div>
                         <Button variant="secondary" size="sm" onClick={printBill}>
