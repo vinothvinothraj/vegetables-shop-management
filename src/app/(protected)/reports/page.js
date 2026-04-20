@@ -16,7 +16,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { useApp } from "@/context/app-context";
-import { Badge, Button, Card, Input, SectionTitle, Select, StatCard, TableShell } from "@/components/ui";
+import { Badge, Button, Card, Input, Select, StatCard, TableShell } from "@/components/ui";
 import { ProductPicker } from "@/components/product-picker";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { createPlaceholderImage } from "@/lib/storage";
@@ -221,23 +221,27 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6 pb-20">
-      <SectionTitle
-          title={t("reports")}
-          subtitle={t("printedVersionOptimized")}
-          action={
-            <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm" onClick={exportReport}>
-                <Download className="h-4 w-4" />
-                <span>{t("csvExport")}</span>
-              </Button>
-              <Button variant="secondary" size="sm" onClick={printReport}>
-                <Printer className="h-4 w-4" />
-                <span>{t("printPdf")}</span>
-              </Button>
-            </div>
-          }
-        />
+      <div className="space-y-6 pb-20">
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={exportReport}
+            className="flex-1 border border-dark-emerald-200 bg-dark-emerald-50 text-black-forest-900 shadow-sm hover:bg-dark-emerald-100 dark:border-black-forest-900/60 dark:bg-black-forest-950/40 dark:text-dark-emerald-100 dark:hover:bg-black-forest-950 sm:flex-none"
+          >
+            <Download className="h-4 w-4" />
+            <span className="whitespace-nowrap">{t("csvExport")}</span>
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={printReport}
+            className="flex-1 border border-black-forest-200 bg-black-forest-700 text-white shadow-sm hover:bg-black-forest-800 dark:border-dark-emerald-900/50 dark:bg-dark-emerald-700 dark:text-white dark:hover:bg-dark-emerald-600 sm:flex-none"
+          >
+            <Printer className="h-4 w-4" />
+            <span className="whitespace-nowrap">{t("printPdf")}</span>
+          </Button>
+        </div>
 
       <div className="no-print space-y-6">
         <Card className="space-y-4">
@@ -311,13 +315,13 @@ export default function ReportsPage() {
             />
           </div>
 
-          <Card className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
+          <Card className="space-y-4 min-w-0">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-base font-semibold">{t("performanceSnapshot")}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{t("salesMinusPurchasesExpenses")}</p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 sm:justify-end">
                 <Button
                   type="button"
                   variant={chartView === "bar" ? "default" : "secondary"}
@@ -348,18 +352,25 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <ChartContainer config={chartConfig} className="h-[280px] w-full">
+            <ChartContainer config={chartConfig} className="h-[220px] w-full overflow-hidden sm:h-[260px] md:h-[280px]">
               {chartView === "pie" ? (
-                <PieChart>
+                <PieChart margin={{ top: 10, right: 8, bottom: 0, left: 8 }}>
                   <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => [formatCurrency(value), name]} />} />
-                  <Pie data={chartData} dataKey="value" nameKey="label" innerRadius={60} outerRadius={100} paddingAngle={4}>
+                  <Pie
+                    data={chartData}
+                    dataKey="value"
+                    nameKey="label"
+                    innerRadius="48%"
+                    outerRadius="80%"
+                    paddingAngle={4}
+                  >
                     {chartData.map((entry) => (
                       <Cell key={entry.label} fill={entry.fill} />
                     ))}
                   </Pie>
                 </PieChart>
               ) : chartView === "line" ? (
-                <LineChart data={chartData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
+                <LineChart data={chartData} margin={{ left: 0, right: 12, top: 10, bottom: 0 }}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} stroke="hsl(var(--muted-foreground))" />
                   <YAxis
@@ -414,17 +425,19 @@ export default function ReportsPage() {
           </Card>
 
           <div className="grid gap-4 xl:grid-cols-[1fr_0.95fr]">
-            <Card className="space-y-4">
-              <div className="flex items-center justify-between gap-3">
+            <Card className="space-y-4 min-w-0">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-base font-semibold">{t("monthlyTrend")}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{t("lastSixMonthsTrend")}</p>
                 </div>
-                <Badge variant="success">{t("monthlyView")}</Badge>
+                <Badge variant="success" className="self-start sm:self-auto">
+                  {t("monthlyView")}
+                </Badge>
               </div>
 
-              <ChartContainer config={trendConfig} className="h-[280px] w-full">
-                <LineChart data={trendData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
+              <ChartContainer config={trendConfig} className="h-[220px] w-full overflow-hidden sm:h-[260px] md:h-[280px]">
+                <LineChart data={trendData} margin={{ left: 0, right: 12, top: 10, bottom: 0 }}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} stroke="hsl(var(--muted-foreground))" />
                   <YAxis
@@ -443,19 +456,28 @@ export default function ReportsPage() {
               </ChartContainer>
             </Card>
 
-            <Card className="space-y-4">
-              <div className="flex items-center justify-between gap-3">
+            <Card className="space-y-4 min-w-0">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-base font-semibold">{t("productWiseSales")}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{t("topSoldProducts")}</p>
                 </div>
-                <Badge variant="success">{productSalesData.length}</Badge>
+                <Badge variant="success" className="self-start sm:self-auto">
+                  {productSalesData.length}
+                </Badge>
               </div>
 
-              <ChartContainer config={chartConfig} className="h-[280px] w-full">
-                <PieChart>
+              <ChartContainer config={chartConfig} className="h-[220px] w-full overflow-hidden sm:h-[260px] md:h-[280px]">
+                <PieChart margin={{ top: 10, right: 8, bottom: 0, left: 8 }}>
                   <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => [formatCurrency(value), name]} />} />
-                  <Pie data={productSalesData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={100} paddingAngle={3}>
+                  <Pie
+                    data={productSalesData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius="44%"
+                    outerRadius="78%"
+                    paddingAngle={3}
+                  >
                     {productSalesData.map((entry) => (
                       <Cell
                         key={entry.name}
