@@ -161,10 +161,10 @@ export function EmptyState({ title, description, action }) {
   );
 }
 
-export function TableShell({ children }) {
+export function TableShell({ children, className }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-      <div className="overflow-x-auto">{children}</div>
+    <div className={cn("overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900", className)}>
+      <div className="overflow-x-auto overscroll-x-contain">{children}</div>
     </div>
   );
 }

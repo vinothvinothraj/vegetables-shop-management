@@ -20,6 +20,7 @@ import { Badge, Button, Card, Input, SectionTitle, Select, StatCard, TableShell 
 import { ProductPicker } from "@/components/product-picker";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { createPlaceholderImage } from "@/lib/storage";
+import { demoDefaultReportDate } from "@/lib/demo-data";
 
 function escapeCsv(value) {
   const text = String(value ?? "");
@@ -70,7 +71,7 @@ const SALES_PALETTE = [
 export default function ReportsPage() {
   const { products, purchases, sales, expenses, reportsForDate, reportsForMonth, formatCurrency, t } = useApp();
   const [period, setPeriod] = useState("daily");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(demoDefaultReportDate);
   const [productId, setProductId] = useState("");
   const [chartView, setChartView] = useState("bar");
 
@@ -475,7 +476,7 @@ export default function ReportsPage() {
               <Badge>{report.purchases.length}</Badge>
             </div>
             <TableShell>
-              <table className="min-w-full text-left text-sm">
+              <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">{t("date")}</th>
@@ -485,7 +486,7 @@ export default function ReportsPage() {
                 </thead>
                 <tbody>
                   {report.purchases.map((item) => (
-                    <tr key={item.id} className="border-t border-slate-200 dark:border-slate-800">
+                    <tr key={item.id} className="border-t border-slate-200 align-top dark:border-slate-800">
                       <td className="px-4 py-3">{item.date}</td>
                       <td className="px-4 py-3">{item.vegetableName}</td>
                       <td className="px-4 py-3">{formatCurrency(item.total)}</td>
@@ -502,7 +503,7 @@ export default function ReportsPage() {
               <Badge>{report.sales.length}</Badge>
             </div>
             <TableShell>
-              <table className="min-w-full text-left text-sm">
+              <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">{t("date")}</th>
@@ -512,7 +513,7 @@ export default function ReportsPage() {
                 </thead>
                 <tbody>
                   {report.sales.map((item) => (
-                    <tr key={item.id} className="border-t border-slate-200 dark:border-slate-800">
+                    <tr key={item.id} className="border-t border-slate-200 align-top dark:border-slate-800">
                       <td className="px-4 py-3">{item.date}</td>
                       <td className="px-4 py-3">{item.customerName || t("walkInCustomer")}</td>
                       <td className="px-4 py-3">{formatCurrency(item.grandTotal)}</td>
@@ -529,7 +530,7 @@ export default function ReportsPage() {
               <Badge>{report.expenses.length}</Badge>
             </div>
             <TableShell>
-              <table className="min-w-full text-left text-sm">
+              <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">{t("date")}</th>
@@ -539,7 +540,7 @@ export default function ReportsPage() {
                 </thead>
                 <tbody>
                   {report.expenses.map((item) => (
-                    <tr key={item.id} className="border-t border-slate-200 dark:border-slate-800">
+                    <tr key={item.id} className="border-t border-slate-200 align-top dark:border-slate-800">
                       <td className="px-4 py-3">{item.date}</td>
                       <td className="px-4 py-3">{item.type}</td>
                       <td className="px-4 py-3">{formatCurrency(item.amount)}</td>

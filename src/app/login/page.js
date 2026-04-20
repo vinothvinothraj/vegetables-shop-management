@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { STORAGE_KEYS, readStorage } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import { LANGS } from "@/lib/i18n";
-import bgImage from "../../../bg.png";
+import bgImage from "../../../bg-2.png";
 
 export default function LoginPage() {
   const router = useRouter();

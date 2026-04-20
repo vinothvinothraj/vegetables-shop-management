@@ -8,11 +8,11 @@ import {
   formatCurrency,
   isSameDay,
   isSameMonth,
-  sampleData,
   startOfMonth,
   sumBy,
   writeStorage,
 } from "@/lib/storage";
+import { demoSeedData } from "@/lib/demo-data";
 import { getDictionary } from "@/lib/i18n";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
@@ -40,6 +40,60 @@ function normalizeProduct(product) {
     image: product.image || "",
     active: product.active !== false,
   };
+}
+
+function normalizePurchase(purchase) {
+  return {
+    ...purchase,
+    quantity: Number(purchase.quantity || 0),
+    pricePerKg: Number(purchase.pricePerKg || 0),
+    total: Number(purchase.total || Number(purchase.quantity || 0) * Number(purchase.pricePerKg || 0)),
+  };
+}
+
+function normalizeSale(sale) {
+  return {
+    ...sale,
+    customerName: normalizeText(sale.customerName),
+    grandTotal: Number(
+      sale.grandTotal ||
+        sumBy(sale.items || [], (item) => Number(item.total || Number(item.qty || 0) * Number(item.price || 0)))
+    ),
+    items: Array.isArray(sale.items)
+      ? sale.items.map((item) => ({
+          ...item,
+          qty: Number(item.qty || 0),
+          price: Number(item.price || 0),
+          total: Number(item.total || Number(item.qty || 0) * Number(item.price || 0)),
+        }))
+      : [],
+  };
+}
+
+function normalizeExpense(expense) {
+  return {
+    ...expense,
+    amount: Number(expense.amount || 0),
+    note: normalizeText(expense.note),
+  };
+}
+
+function isMissingOrEmptyArray(key) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const raw = window.localStorage.getItem(key);
+  if (raw === null) {
+    return true;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length === 0;
+  } catch {
+    return false;
+  }
 }
 
 function pickProductName(item, product) {
@@ -150,22 +204,28 @@ export function AppProvider({ children }) {
       return;
     }
 
-    if (window.localStorage.getItem(STORAGE_KEYS.products) === null || !Array.isArray(products)) {
-      setProducts(sampleData.products.map(normalizeProduct));
+    if (isMissingOrEmptyArray(STORAGE_KEYS.products) || !Array.isArray(products) || products.length === 0) {
+      setProducts(demoSeedData.products.map(normalizeProduct));
     } else {
       setProducts((current) => current.map(normalizeProduct));
     }
 
-    if (window.localStorage.getItem(STORAGE_KEYS.purchases) === null || !Array.isArray(purchases)) {
-      setPurchases([]);
+    if (isMissingOrEmptyArray(STORAGE_KEYS.purchases) || !Array.isArray(purchases) || purchases.length === 0) {
+      setPurchases(demoSeedData.purchases.map(normalizePurchase));
+    } else {
+      setPurchases((current) => current.map(normalizePurchase));
     }
 
-    if (window.localStorage.getItem(STORAGE_KEYS.sales) === null || !Array.isArray(sales)) {
-      setSales([]);
+    if (isMissingOrEmptyArray(STORAGE_KEYS.sales) || !Array.isArray(sales) || sales.length === 0) {
+      setSales(demoSeedData.sales.map(normalizeSale));
+    } else {
+      setSales((current) => current.map(normalizeSale));
     }
 
-    if (window.localStorage.getItem(STORAGE_KEYS.expenses) === null || !Array.isArray(expenses)) {
-      setExpenses([]);
+    if (isMissingOrEmptyArray(STORAGE_KEYS.expenses) || !Array.isArray(expenses) || expenses.length === 0) {
+      setExpenses(demoSeedData.expenses.map(normalizeExpense));
+    } else {
+      setExpenses((current) => current.map(normalizeExpense));
     }
 
     setInitialised(true);
@@ -267,6 +327,20 @@ export function AppProvider({ children }) {
     return nextSale;
   };
 
+  const updateSale = (id, sale) => {
+    const items = normaliseBillItems(sale.items, safeProducts);
+    const nextSale = {
+      id,
+      date: sale.date,
+      customerName: normalizeText(sale.customerName),
+      items,
+      grandTotal: sumBy(items, (item) => item.total),
+    };
+
+    setSales((current) => current.map((item) => (item.id === id ? nextSale : item)));
+    return nextSale;
+  };
+
   const removeSale = (id) => {
     setSales((current) => current.filter((item) => item.id !== id));
   };
@@ -307,10 +381,10 @@ export function AppProvider({ children }) {
       STORAGE_KEYS.expenses,
       STORAGE_KEYS.userSession,
     ]);
-    setProducts(sampleData.products.map(normalizeProduct));
-    setPurchases([]);
-    setSales([]);
-    setExpenses([]);
+    setProducts(demoSeedData.products.map(normalizeProduct));
+    setPurchases(demoSeedData.purchases.map(normalizePurchase));
+    setSales(demoSeedData.sales.map(normalizeSale));
+    setExpenses(demoSeedData.expenses.map(normalizeExpense));
     setSession(null);
     router.push("/login");
   };
@@ -506,6 +580,7 @@ export function AppProvider({ children }) {
     updatePurchase,
     removePurchase,
     addSale,
+    updateSale,
     removeSale,
     addExpense,
     updateExpense,

@@ -9,9 +9,9 @@ export function Modal({ open, title, description, children, footer, onClose, max
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 px-3 py-3 backdrop-blur-sm md:items-center md:px-6">
-      <Card className={`flex max-h-[92vh] w-full ${maxWidth} flex-col overflow-hidden p-0 shadow-2xl`}>
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/70 px-0 pt-0 backdrop-blur-sm md:items-start md:px-6 md:pt-8">
+      <Card className={`flex max-h-[100dvh] w-full ${maxWidth} flex-col overflow-hidden rounded-t-[1.75rem] rounded-b-none border-slate-200 bg-white p-0 shadow-2xl dark:border-slate-800 dark:bg-slate-900 md:max-h-[calc(100dvh-2rem)] md:rounded-3xl`}>
+        <div className="flex items-start justify-between gap-4 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-dark-emerald-50 p-4 dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 md:p-5">
           <div>
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">{title}</h3>
             {description ? (
@@ -28,9 +28,9 @@ export function Modal({ open, title, description, children, footer, onClose, max
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
 
-        {footer ? <div className="border-t border-slate-200 p-4 dark:border-slate-800">{footer}</div> : null}
+        {footer ? <div className="border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">{footer}</div> : null}
       </Card>
     </div>
   );

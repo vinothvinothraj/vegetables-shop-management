@@ -72,7 +72,7 @@ export function AppShell({ children }) {
         </div>
       </header>
 
-      <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 gap-3 overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-20 sm:px-4 sm:pt-24 lg:gap-6 lg:px-6 lg:pb-8">
+      <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 gap-3 overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-[calc(9rem+env(safe-area-inset-bottom))] pt-20 sm:px-4 sm:pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pt-24 lg:gap-6 lg:px-6 lg:pb-8">
         <aside className="hidden w-64 shrink-0 lg:block">
           <Card className="sticky top-24 space-y-1.5 p-2">
             {navItems.map((item) => {

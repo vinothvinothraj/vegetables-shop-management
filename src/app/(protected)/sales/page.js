@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Check, Minus, Plus, Printer, Search, Trash2, X } from "lucide-react";
+import { Check, Edit, Minus, Plus, Printer, Search, ShoppingCart, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/context/app-context";
-import { Badge, Button, Card, EmptyState, Input, SectionTitle, Select, TableShell } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, Select, TableShell } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { createPlaceholderImage } from "@/lib/storage";
 
@@ -32,7 +32,7 @@ function EmptySection({ title, description }) {
 }
 
 export default function SalesPage() {
-  const { products, sales, addSale, removeSale, formatCurrency, t } = useApp();
+  const { products, sales, addSale, updateSale, removeSale, formatCurrency, t } = useApp();
   const [bill, setBill] = useState({
     date: new Date().toISOString().slice(0, 10),
     customerName: "",
@@ -44,6 +44,7 @@ export default function SalesPage() {
   const [lastBill, setLastBill] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [editingSaleId, setEditingSaleId] = useState(null);
   const printRef = useRef(null);
 
   const subtotal = useMemo(
@@ -173,11 +174,13 @@ export default function SalesPage() {
       return;
     }
 
-    const result = addSale({
+    const payload = {
       date: bill.date,
       customerName: bill.customerName,
       items: bill.items,
-    });
+    };
+
+    const result = editingSaleId ? updateSale(editingSaleId, payload) : addSale(payload);
 
     setLastBill(result);
     setBill({
@@ -185,8 +188,36 @@ export default function SalesPage() {
       customerName: "",
       items: [],
     });
+    setEditingSaleId(null);
     toast.success(t("billSavedSuccessfully"));
     setIsCartOpen(false);
+  };
+
+  const openBillForEdit = (sale) => {
+    setLastBill(sale);
+    setEditingSaleId(sale.id);
+    setBill({
+      date: sale.date,
+      customerName: sale.customerName || "",
+      items: sale.items.map((item) => ({
+        ...item,
+        total: Number(item.qty || 0) * Number(item.price || 0),
+      })),
+    });
+    setIsCartOpen(true);
+  };
+
+  const openBillForPrint = (sale) => {
+    setLastBill(sale);
+    setBill({
+      date: sale.date,
+      customerName: sale.customerName || "",
+      items: sale.items.map((item) => ({
+        ...item,
+        total: Number(item.qty || 0) * Number(item.price || 0),
+      })),
+    });
+    setIsCartOpen(true);
   };
 
   const handleDelete = (id) => {
@@ -220,29 +251,23 @@ export default function SalesPage() {
   const selectedCount = bill.items.length;
 
   return (
-    <div className="space-y-6">
-      <SectionTitle
-        title={t("sales")}
-        subtitle={t("generateRetailBill")}
-        action={
-          <Button type="button" size="sm" onClick={() => setIsCartOpen(true)}>
-            {t("cartDrawer")}
+    <div className="space-y-6 pb-20">
+      <Card className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-base font-semibold">{t("productGrid")}</h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-100 hover:shadow-md dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100 dark:hover:bg-emerald-950/50"
+          >
+            <ShoppingCart className="h-4 w-4 text-emerald-600" />
+            <span>Cart</span>
             <Badge variant="success" className="ml-1">
               {selectedCount}
             </Badge>
-          </Button>
-        }
-      />
-
-      <Card className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="text-base font-semibold">{t("productGrid")}</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t("tapCardToAdd")}</p>
-          </div>
-          <Badge variant="success">
-            {selectedCount} {t("selected")}
-          </Badge>
+          </button>
         </div>
 
         <div className="relative max-w-sm">
@@ -324,7 +349,7 @@ export default function SalesPage() {
                       {selected ? <Check className="h-4 w-4 flex-none text-black-forest-600" /> : null}
                     </div>
                     <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                      {product.category || t("general")} · {product.unit}
+                      {product.category || t("general")} Â· {product.unit}
                     </p>
                     <p className="mt-1 text-sm font-semibold">{formatCurrency(product.pricePerKg)}</p>
                   </div>
@@ -364,7 +389,7 @@ export default function SalesPage() {
           <EmptySection title={t("noBillsFound")} description={t("createAndSaveBill")} />
         ) : (
           <TableShell>
-            <table className="min-w-full text-left text-sm">
+            <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                 <tr>
                   <th className="px-4 py-3 font-medium">{t("date")}</th>
@@ -376,10 +401,22 @@ export default function SalesPage() {
               </thead>
               <tbody>
                 {filteredSales.map((sale) => (
-                  <tr key={sale.id} className="border-t border-slate-200 dark:border-slate-800">
+                  <tr
+                    key={sale.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openBillForEdit(sale)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openBillForEdit(sale);
+                      }
+                    }}
+                    className="cursor-pointer border-t border-slate-200 align-top transition hover:bg-slate-50 focus:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40 dark:focus:bg-slate-800/40"
+                  >
                     <td className="px-4 py-3">{sale.date}</td>
                     <td className="px-4 py-3">{sale.customerName || t("walkInCustomer")}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 max-w-[240px] whitespace-normal break-words">
                       <div className="flex flex-wrap gap-2">
                         {sale.items.map((item) => (
                           <Badge key={item.id}>{item.productName}</Badge>
@@ -388,9 +425,30 @@ export default function SalesPage() {
                     </td>
                     <td className="px-4 py-3 font-semibold">{formatCurrency(sale.grandTotal)}</td>
                     <td className="px-4 py-3">
-                      <Button variant="danger" size="sm" onClick={() => handleDelete(sale.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => openBillForEdit(sale)}
+                          aria-label={t("edit")}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            openBillForPrint(sale);
+                            setTimeout(() => window.print(), 250);
+                          }}
+                          aria-label={t("print")}
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                        <Button variant="danger" size="sm" onClick={() => handleDelete(sale.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -431,236 +489,232 @@ export default function SalesPage() {
               </button>
             </div>
 
-            <div className="border-b border-slate-200 p-4 dark:border-slate-800">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-semibold">{t("allProducts")}</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{t("tapCardToAdd")}</p>
-                </div>
-                <Badge variant="success">{availableProducts.length}</Badge>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2">
-                {availableProducts.length === 0 ? (
-                  <div className="col-span-4">
-                    <EmptySection title={t("allGood")} description={t("selected")} />
-                  </div>
-                ) : (
-                  availableProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => toggleProduct(product)}
-                      className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-black-forest-400 dark:border-slate-800 dark:bg-slate-950"
-                      aria-label={product.name}
-                    >
-                      <img
-                        src={product.image || createPlaceholderImage(product.name)}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-2 pt-6 text-[10px] font-semibold text-white">
-                        {product.name}
-                      </span>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-0 overflow-y-auto lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="space-y-4 border-b border-slate-200 p-4 lg:border-b-0 lg:border-r dark:border-slate-800">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium">{t("date")}</label>
-                    <Input
-                      type="date"
-                      value={bill.date}
-                      onChange={(e) => setBill({ ...bill, date: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium">{t("customerName")}</label>
-                    <Input
-                      value={bill.customerName}
-                      onChange={(e) => setBill({ ...bill, customerName: e.target.value })}
-                      placeholder={t("optional")}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold">{t("selected")}</h4>
-                    <Badge variant="success">{selectedEntries.length}</Badge>
-                  </div>
-
-                  {selectedEntries.length === 0 ? (
-                    <EmptySection title={t("noData")} description={t("tapProductCardToAddAtLeastOneItem")} />
-                  ) : (
-                    <div className="space-y-3">
-                      {selectedEntries.map(({ item, product }) => (
-                        <div key={item.id} className="rounded-2xl border border-slate-200 p-3 dark:border-slate-800">
-                          <div className="mb-3 flex items-center gap-3">
-                            <img
-                              src={item.image || product?.image || createPlaceholderImage(item.productName)}
-                              alt={item.productName}
-                              className="h-14 w-14 rounded-xl object-cover"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate font-medium">{item.productName}</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {product?.category || t("general")} · {item.unit}
-                              </p>
-                            </div>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              type="button"
-                              onClick={() => {
-                                if (product) {
-                                  toggleProduct(product);
-                                  return;
-                                }
-
-                                setBill((current) => ({
-                                  ...current,
-                                  items: current.items.filter((entry) => entry.id !== item.id),
-                                }));
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="mb-2 block text-xs font-medium text-slate-500">{t("quantity")}</label>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                value={item.qty}
-                                onChange={(e) => updateItem(item.id, "qty", e.target.value)}
-                              />
-                            </div>
-                            <div>
-                              <label className="mb-2 block text-xs font-medium text-slate-500">{t("price")}</label>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={item.price}
-                                onChange={(e) => updateItem(item.id, "price", e.target.value)}
-                              />
-                            </div>
-                            <div>
-                              <label className="mb-2 block text-xs font-medium text-slate-500">{t("total")}</label>
-                              <Input value={formatCurrency(Number(item.qty || 0) * Number(item.price || 0))} readOnly />
-                            </div>
-                          </div>
-
-                          <div className="mt-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Button variant="secondary" size="sm" type="button" onClick={() => addQuantity(item.id, -1)}>
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <Button variant="secondary" size="sm" type="button" onClick={() => addQuantity(item.id, 1)}>
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <p className="text-sm font-semibold">
-                              {formatCurrency(Number(item.qty || 0) * Number(item.price || 0))}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="grid gap-4">
+                <Card className="space-y-4 border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/40">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-sm font-semibold">{t("allProducts")}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{t("tapCardToAdd")}</p>
                     </div>
-                  )}
-                </div>
-
-                <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500">{t("grandTotal")}</span>
-                    <span className="text-2xl font-semibold">{formatCurrency(subtotal)}</span>
+                    <Badge variant="success">{availableProducts.length}</Badge>
                   </div>
-                  <div className="mt-3 flex gap-2">
-                    <Button type="button" size="lg" className="flex-1" onClick={saveBill}>
-                      <Plus className="h-4 w-4" />
-                      {t("generateBill")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="lg"
-                      onClick={() =>
-                        setBill({
-                          date: new Date().toISOString().slice(0, 10),
-                          customerName: "",
-                          items: [],
-                        })
-                      }
-                    >
-                      {t("clear")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-4 p-4">
-                <div className="rounded-2xl border border-dashed border-slate-200 p-4 dark:border-slate-800">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{t("printableBill")}</p>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t("tapProductCardToAddAtLeastOneItem")}</p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              ref={printRef}
-              className="border-t border-slate-200 p-4 dark:border-slate-800"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{t("printableBill")}</p>
-                  <h4 className="text-lg font-semibold">{t("receipt")}</h4>
-                </div>
-                <Button variant="secondary" size="sm" onClick={printBill}>
-                  <Printer className="h-4 w-4" />
-                  {t("print")}
-                </Button>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span>{t("date")}</span>
-                    <span>{previewBill.date}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>{t("customer")}</span>
-                    <span>{previewBill.customerName || t("walkInCustomer")}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2 border-t border-dashed border-slate-200 pt-3 dark:border-slate-800 lg:border-t-0 lg:pt-0">
-                  {previewBill.items.length === 0 ? (
-                    <p className="text-sm text-slate-500">{t("selectProductsToPreviewBill")}</p>
-                  ) : (
-                    previewBill.items.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between text-sm">
-                        <span>
-                          {item.productName} x {item.qty}
-                        </span>
-                        <span>{formatCurrency(Number(item.qty || 0) * Number(item.price || 0))}</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {availableProducts.length === 0 ? (
+                      <div className="col-span-4">
+                        <EmptySection title={t("allGood")} description={t("selected")} />
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
+                    ) : (
+                      availableProducts.map((product) => (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => toggleProduct(product)}
+                          className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-black-forest-400 dark:border-slate-800 dark:bg-slate-950"
+                          aria-label={product.name}
+                        >
+                          <img
+                            src={product.image || createPlaceholderImage(product.name)}
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                          />
+                          <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-2 pt-6 text-[10px] font-semibold text-white">
+                            {product.name}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </Card>
 
-              <div className="mt-3 flex items-center justify-between text-base font-semibold">
-                <span>{t("grandTotal")}</span>
-                <span>{formatCurrency(previewBill.grandTotal || 0)}</span>
+                <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+                  <Card className="space-y-4 border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/40">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">{t("selected")}</h4>
+                      <Badge variant="success">{selectedEntries.length}</Badge>
+                    </div>
+
+                    <div className="grid gap-3">
+                      {selectedEntries.length === 0 ? (
+                        <EmptySection title={t("noData")} description={t("tapProductCardToAddAtLeastOneItem")} />
+                      ) : (
+                        selectedEntries.map(({ item, product }) => (
+                          <Card key={item.id} className="space-y-3 border-slate-200 bg-white p-3 shadow-none dark:border-slate-800 dark:bg-slate-900">
+                            <div className="flex items-start gap-3">
+                              <img
+                                src={item.image || product?.image || createPlaceholderImage(item.productName)}
+                                alt={item.productName}
+                                className="h-14 w-14 rounded-xl object-cover"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <p className="truncate font-medium">{item.productName}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                      {product?.category || t("general")} · {item.unit}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    variant="danger"
+                                    size="sm"
+                                    type="button"
+                                    onClick={() => {
+                                      if (product) {
+                                        toggleProduct(product);
+                                        return;
+                                      }
+
+                                      setBill((current) => ({
+                                        ...current,
+                                        items: current.items.filter((entry) => entry.id !== item.id),
+                                      }));
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <label className="mb-2 block text-xs font-medium text-slate-500">{t("quantity")}</label>
+                                <div className="flex items-center overflow-hidden rounded-xl border border-dark-emerald-100 bg-white shadow-sm dark:border-black-forest-900/60 dark:bg-slate-950">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    type="button"
+                                    className="h-11 w-11 rounded-none border-r border-dark-emerald-100 px-0 dark:border-black-forest-900/60"
+                                    onClick={() => addQuantity(item.id, -1)}
+                                    disabled={Number(item.qty || 0) <= 0.1}
+                                    aria-label="Decrease quantity"
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={item.qty}
+                                    onChange={(e) => updateItem(item.id, "qty", e.target.value)}
+                                    className="h-11 rounded-none border-0 bg-transparent px-0 text-center shadow-none focus:ring-0"
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    type="button"
+                                    className="h-11 w-11 rounded-none border-l border-dark-emerald-100 px-0 dark:border-black-forest-900/60"
+                                    onClick={() => addQuantity(item.id, 1)}
+                                    aria-label="Increase quantity"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <div>
+                                <label className="mb-2 block text-xs font-medium text-slate-500">{t("price")}</label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={item.price}
+                                  onChange={(e) => updateItem(item.id, "price", e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <label className="mb-2 block text-xs font-medium text-slate-500">{t("total")}</label>
+                                <Input value={formatCurrency(Number(item.qty || 0) * Number(item.price || 0))} readOnly />
+                              </div>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </Card>
+
+                  <div className="space-y-4">
+                    <div
+                      ref={printRef}
+                      className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{t("printableBill")}</p>
+                          <h4 className="text-lg font-semibold">{t("receipt")}</h4>
+                        </div>
+                        <Button variant="secondary" size="sm" onClick={printBill}>
+                          <Printer className="h-4 w-4" />
+                          {t("print")}
+                        </Button>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">{t("date")}</label>
+                          <Input
+                            type="date"
+                            value={bill.date}
+                            onChange={(e) => setBill({ ...bill, date: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">{t("customerName")}</label>
+                          <Input
+                            value={bill.customerName}
+                            onChange={(e) => setBill({ ...bill, customerName: e.target.value })}
+                            placeholder={t("optional")}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="space-y-2 text-sm">
+                          {previewBill.items.length === 0 ? (
+                            <p className="text-sm text-slate-500">{t("selectProductsToPreviewBill")}</p>
+                          ) : (
+                            previewBill.items.map((item) => (
+                              <div key={item.id} className="flex items-center justify-between gap-3">
+                                <span className="min-w-0 truncate">
+                                  {item.productName} x {item.qty}
+                                </span>
+                                <span className="shrink-0">{formatCurrency(Number(item.qty || 0) * Number(item.price || 0))}</span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between border-t border-dashed border-slate-200 pt-3 text-base font-semibold dark:border-slate-800">
+                          <span>{t("grandTotal")}</span>
+                          <span>{formatCurrency(previewBill.grandTotal || 0)}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                        <Button type="button" size="lg" className="w-full" onClick={saveBill}>
+                          <Plus className="h-4 w-4" />
+                          {t("generateBill")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="lg"
+                          className="whitespace-nowrap px-5"
+                          onClick={() => {
+                            setBill({
+                              date: new Date().toISOString().slice(0, 10),
+                              customerName: "",
+                              items: [],
+                            });
+                            setEditingSaleId(null);
+                          }}
+                        >
+                          {t("clear")}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -669,3 +723,4 @@ export default function SalesPage() {
     </div>
   );
 }
+

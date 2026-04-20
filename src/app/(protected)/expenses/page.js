@@ -120,11 +120,7 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <SectionTitle
-        title={t("expenses")}
-        subtitle={t("addOperationalExpense")}
-      />
+    <div className="space-y-6 pb-20">
 
       <div className="space-y-4">
         <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -167,7 +163,7 @@ export default function ExpensesPage() {
             <EmptyState title={t("noExpensesYet")} description={t("addOperationalExpense")} />
           ) : (
             <TableShell>
-              <table className="min-w-full text-left text-sm">
+              <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">{t("date")}</th>
@@ -179,13 +175,13 @@ export default function ExpensesPage() {
                 </thead>
                 <tbody>
                   {filtered.map((item) => (
-                    <tr key={item.id} className="border-t border-slate-200 dark:border-slate-800">
+                    <tr key={item.id} className="border-t border-slate-200 align-top dark:border-slate-800">
                       <td className="px-4 py-3">{item.date}</td>
                       <td className="px-4 py-3">
                         <Badge variant="warning">{item.type}</Badge>
                       </td>
                       <td className="px-4 py-3 font-semibold">{formatCurrency(item.amount)}</td>
-                      <td className="px-4 py-3">{item.note || "-"}</td>
+                      <td className="px-4 py-3 max-w-[240px] whitespace-normal break-words">{item.note || "-"}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Button

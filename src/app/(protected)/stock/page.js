@@ -43,11 +43,7 @@ export default function StockPage() {
   const totalRemaining = stockByProduct.reduce((sum, item) => sum + Number(item.remaining || 0), 0);
 
   return (
-    <div className="space-y-6">
-      <SectionTitle
-        title={t("stock")}
-        subtitle={t("stockCalculatedAutomatically")}
-      />
+    <div className="space-y-6 pb-20">
 
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard label={t("totalPurchased")} value={`${totalPurchased} kg`} accent="dark-emerald" />
@@ -84,7 +80,7 @@ export default function StockPage() {
           <EmptyState title={t("noStockEntriesFound")} description={t("stockRowsAppearAutomatically")} />
         ) : (
           <TableShell>
-            <table className="min-w-full text-left text-sm">
+            <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                 <tr>
                   <th className="px-4 py-3 font-medium">{t("product")}</th>
@@ -96,7 +92,7 @@ export default function StockPage() {
               </thead>
               <tbody>
                 {filtered.map((item) => (
-                  <tr key={item.productId || item.vegetableName} className="border-t border-slate-200 dark:border-slate-800">
+                  <tr key={item.productId || item.vegetableName} className="border-t border-slate-200 align-top dark:border-slate-800">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <img

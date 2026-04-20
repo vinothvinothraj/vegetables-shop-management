@@ -18,6 +18,17 @@ const emptyForm = {
   active: true,
 };
 
+const categoryOptions = [
+  "General",
+  "Local Greens",
+  "Root Veg",
+  "Allium",
+  "Pods",
+  "Fresh",
+  "Spicy",
+  "Leafy Greens",
+];
+
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -153,12 +164,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <SectionTitle
-        title={t("productCatalog")}
-        subtitle={t("manageProductsCatalogue")}
-      />
-
+    <div className="space-y-6 pb-20">
       <div className="space-y-4">
         <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -210,7 +216,7 @@ export default function ProductsPage() {
             />
           ) : (
             <TableShell>
-              <table className="min-w-full text-left text-sm">
+              <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">{t("product")}</th>
@@ -222,7 +228,7 @@ export default function ProductsPage() {
                 </thead>
                 <tbody>
                   {filtered.map((item) => (
-                    <tr key={item.id} className="border-t border-slate-200 dark:border-slate-800">
+                    <tr key={item.id} className="border-t border-slate-200 align-top dark:border-slate-800">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <img
@@ -287,7 +293,16 @@ export default function ProductsPage() {
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium">{t("category")}</label>
-              <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Root Veg" />
+              <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                <option value="" disabled>
+                  {t("category")}
+                </option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </Select>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

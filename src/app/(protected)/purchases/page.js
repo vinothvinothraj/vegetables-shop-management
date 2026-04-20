@@ -140,11 +140,7 @@ export default function PurchasesPage() {
   const selectedProduct = products.find((item) => item.id === form.productId);
 
   return (
-    <div className="space-y-6">
-      <SectionTitle
-        title={t("purchases")}
-        subtitle={t("trackPurchasesBillingExpensesStockAndProfit")}
-      />
+    <div className="space-y-6 pb-20">
 
       <div className="space-y-4">
         <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -198,7 +194,7 @@ export default function PurchasesPage() {
             <EmptyState title={t("noPurchasesYet")} description={t("createFirstPurchase")} />
           ) : (
             <TableShell>
-              <table className="min-w-full text-left text-sm">
+              <table className="min-w-max w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   <tr>
                     <th className="px-4 py-3 font-medium">{t("date")}</th>
@@ -214,7 +210,7 @@ export default function PurchasesPage() {
                   {filtered.map((item) => {
                     const product = products.find((entry) => entry.id === item.productId);
                     return (
-                      <tr key={item.id} className="border-t border-slate-200 dark:border-slate-800">
+                      <tr key={item.id} className="border-t border-slate-200 align-top dark:border-slate-800">
                         <td className="px-4 py-3">{item.date}</td>
                         <td className="px-4 py-3">{item.supplierName}</td>
                         <td className="px-4 py-3">
