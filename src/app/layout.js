@@ -2,7 +2,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 
 export const metadata = {
-  title: "Veggie Shop Client",
+  title: "Veggie Shop",
   description: "Mobile-friendly vegetable shop management system",
 };
 

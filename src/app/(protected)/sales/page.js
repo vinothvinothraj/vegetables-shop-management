@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Check, Edit, Minus, Plus, Printer, Search, ShoppingCart, Trash2, X } from "lucide-react";
+import { Check, Edit, Minus, Plus, Printer, Salad, Search, ShoppingCart, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/context/app-context";
 import { Badge, Button, Card, EmptyState, Input, Select, TableShell } from "@/components/ui";
@@ -252,6 +252,7 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6 pb-20">
+      <div className="no-print space-y-6">
       <Card className="space-y-5">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -634,10 +635,7 @@ export default function SalesPage() {
                   </Card>
 
                   <div className="space-y-4">
-                    <div
-                      ref={printRef}
-                      className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40"
-                    >
+                    <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{t("printableBill")}</p>
@@ -720,6 +718,83 @@ export default function SalesPage() {
           </div>
         </div>
       ) : null}
+      </div>
+
+      <div className="hidden print:block print:bg-white print:px-6 print:py-8">
+        <div
+          ref={printRef}
+          className="mx-auto max-w-[190mm] rounded-[28px] border border-slate-200 bg-white p-6 text-slate-900 shadow-[0_18px_60px_rgba(15,23,42,0.08)] print:border-0 print:p-0 print:shadow-none"
+        >
+          <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black-forest-700 text-white shadow-soft ring-4 ring-dark-emerald-100 print:ring-0">
+              <Salad className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-dark-emerald-700">
+                {t("appName")}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 py-4 text-sm sm:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{t("date")}</p>
+              <p className="mt-1 font-semibold text-slate-900">{previewBill.date}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3 sm:text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                {t("customerName")}
+              </p>
+              <p className="mt-1 font-semibold text-slate-900">{previewBill.customerName || t("walkInCustomer")}</p>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-slate-200">
+            <table className="w-full border-collapse text-sm">
+              <thead className="bg-slate-50">
+                <tr className="text-left text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                  <th className="py-3 pl-4 pr-3 font-medium">{t("product")}</th>
+                  <th className="py-3 px-3 font-medium text-right">{t("quantity")}</th>
+                  <th className="py-3 px-3 font-medium text-right">{t("price")}</th>
+                  <th className="py-3 pl-3 pr-4 font-medium text-right">{t("total")}</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white">
+                {previewBill.items.length === 0 ? (
+                  <tr>
+                    <td className="px-4 py-5 text-slate-500" colSpan={4}>
+                      {t("selectProductsToPreviewBill")}
+                    </td>
+                  </tr>
+                ) : (
+                  previewBill.items.map((item) => (
+                    <tr key={item.id} className="border-t border-slate-100 align-top">
+                      <td className="px-4 py-4">
+                        <div className="font-semibold text-slate-900">{item.productName}</div>
+                        <div className="mt-1 text-xs text-slate-500">{item.unit}</div>
+                      </td>
+                      <td className="px-3 py-4 text-right font-medium">{item.qty}</td>
+                      <td className="px-3 py-4 text-right font-medium">{formatCurrency(Number(item.price || 0))}</td>
+                      <td className="px-4 py-4 text-right font-semibold text-slate-900">
+                        {formatCurrency(Number(item.qty || 0) * Number(item.price || 0))}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-dark-emerald-200 bg-dark-emerald-50 px-4 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm font-medium text-slate-600">{t("grandTotal")}</span>
+              <span className="text-xl font-semibold text-black-forest-900">
+                {formatCurrency(previewBill.grandTotal || subtotal || 0)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

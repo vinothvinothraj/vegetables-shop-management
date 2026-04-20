@@ -33,8 +33,8 @@ export function AppShell({ children }) {
   const { session, signOut, resetDemoData, lang, setLang, t } = useApp();
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(47,208,87,0.16),transparent_22%),radial-gradient(circle_at_top_right,rgba(23,124,53,0.12),transparent_24%),linear-gradient(180deg,rgba(234,250,238,1),rgba(229,255,241,0.92))] text-slate-900 dark:bg-[radial-gradient(circle_at_top_left,rgba(47,208,87,0.12),transparent_25%),radial-gradient(circle_at_top_right,rgba(23,124,53,0.10),transparent_24%),linear-gradient(180deg,rgba(2,6,23,1),rgba(15,23,42,0.96))] dark:text-slate-50">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-dark-emerald-100/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
+    <div className="flex h-dvh flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(47,208,87,0.16),transparent_22%),radial-gradient(circle_at_top_right,rgba(23,124,53,0.12),transparent_24%),linear-gradient(180deg,rgba(234,250,238,1),rgba(229,255,241,0.92))] text-slate-900 dark:bg-[radial-gradient(circle_at_top_left,rgba(47,208,87,0.12),transparent_25%),radial-gradient(circle_at_top_right,rgba(23,124,53,0.10),transparent_24%),linear-gradient(180deg,rgba(2,6,23,1),rgba(15,23,42,0.96))] dark:text-slate-50 print:block print:!h-auto print:!min-h-0 print:!overflow-visible print:!bg-white print:[background-image:none]">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-dark-emerald-100/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 print:hidden">
         <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between gap-2 px-3 sm:h-18 sm:px-4 lg:px-6">
           <Link href="/reports" className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-black-forest-700 text-white shadow-soft ring-4 ring-dark-emerald-100 dark:ring-black-forest-950 sm:h-10 sm:w-10">
@@ -72,8 +72,8 @@ export function AppShell({ children }) {
         </div>
       </header>
 
-      <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 gap-3 overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-[calc(9rem+env(safe-area-inset-bottom))] pt-20 sm:px-4 sm:pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pt-24 lg:gap-6 lg:px-6 lg:pb-8">
-        <aside className="hidden w-64 shrink-0 lg:block">
+      <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 gap-3 overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-[calc(9rem+env(safe-area-inset-bottom))] pt-20 sm:px-4 sm:pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pt-24 lg:gap-6 lg:px-6 lg:pb-8 print:block print:max-w-none print:!overflow-visible print:px-0 print:pt-0 print:pb-0">
+        <aside className="hidden w-64 shrink-0 lg:block print:hidden">
           <Card className="sticky top-24 space-y-1.5 p-2">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -101,7 +101,7 @@ export function AppShell({ children }) {
         <section className="min-w-0 flex-1">{children}</section>
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-dark-emerald-100 bg-white/95 px-2 py-2 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-dark-emerald-100 bg-white/95 px-2 py-2 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:hidden print:hidden">
         <div className="grid grid-flow-col auto-cols-fr gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {navItems.map((item) => {
             const Icon = item.icon;
