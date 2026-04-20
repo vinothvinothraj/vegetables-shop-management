@@ -221,7 +221,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <SectionTitle
           title={t("reports")}
           subtitle={t("printedVersionOptimized")}
