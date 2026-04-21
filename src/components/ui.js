@@ -94,7 +94,7 @@ export function Card({ className, ...props }) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-dark-emerald-100 bg-white/90 p-3 shadow-soft backdrop-blur dark:border-black-forest-900/40 dark:bg-slate-900/88",
+        "rounded-xl border border-dark-emerald-100 bg-white/90 p-3 shadow-soft backdrop-blur dark:border-black-forest-900/40 dark:bg-slate-900/88",
         className
       )}
       {...props}
@@ -166,7 +166,7 @@ export function EmptyState({ title, description, action }) {
 
 export function TableShell({ children, className }) {
   return (
-    <div className={cn("overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900", className)}>
+    <div className={cn("overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900", className)}>
       <div className="overflow-x-auto overscroll-x-contain">{children}</div>
     </div>
   );

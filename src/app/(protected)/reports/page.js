@@ -273,7 +273,7 @@ export default function ReportsPage() {
           </div>
 
           {selectedProduct ? (
-            <div className="flex items-center gap-3 rounded-2xl bg-dark-emerald-50 p-3 dark:bg-black-forest-950/40">
+            <div className="flex items-center gap-3 rounded-xl bg-dark-emerald-50 p-3 dark:bg-black-forest-950/40">
               <img
                 src={resolveProductImage(selectedProduct.name, selectedProduct.image)}
                 alt={selectedProduct.name}

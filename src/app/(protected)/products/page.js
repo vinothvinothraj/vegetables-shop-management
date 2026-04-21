@@ -323,7 +323,7 @@ export default function ProductsPage() {
           <div>
             <label className="mb-2 block text-sm font-medium">{t("image")}</label>
             <div className="flex items-center gap-3">
-              <div className="h-14 w-14 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
+              <div className="h-14 w-14 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
                 {form.image ? (
                   <img src={form.image} alt={form.name || "product"} className="h-full w-full object-cover" />
                 ) : form.name ? (

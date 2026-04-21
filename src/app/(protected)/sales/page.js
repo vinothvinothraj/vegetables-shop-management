@@ -24,7 +24,7 @@ function makeItem(product) {
 
 function EmptySection({ title, description }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+    <div className="rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
       <p className="font-medium text-slate-900 dark:text-slate-50">{title}</p>
       <p className="mt-1">{description}</p>
     </div>
@@ -296,7 +296,7 @@ export default function SalesPage() {
                   type="button"
                   onClick={() => toggleProduct(product)}
                   aria-label={product.name}
-                  className={`relative aspect-square overflow-hidden rounded-2xl border transition ${
+                  className={`relative aspect-square overflow-hidden rounded-xl border transition ${
                     selected
                       ? "border-black-forest-500 bg-dark-emerald-50 shadow-soft dark:border-black-forest-500 dark:bg-black-forest-950/40"
                       : "border-slate-200 bg-white hover:border-black-forest-300 dark:border-slate-800 dark:bg-slate-900"
@@ -331,7 +331,7 @@ export default function SalesPage() {
                   key={product.id}
                   type="button"
                   onClick={() => toggleProduct(product)}
-                className={`group rounded-2xl border p-3 text-left transition ${
+                className={`group rounded-xl border p-3 text-left transition ${
                   selected
                     ? "border-black-forest-500 bg-dark-emerald-50 shadow-soft dark:border-black-forest-500 dark:bg-black-forest-950/40"
                     : "border-slate-200 bg-white hover:border-black-forest-300 hover:shadow-soft dark:border-slate-800 dark:bg-slate-900"
@@ -470,7 +470,7 @@ export default function SalesPage() {
 
       {isCartOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 px-3 py-3 backdrop-blur-sm md:items-center md:px-6">
-          <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-dark-emerald-100 bg-white shadow-2xl dark:border-black-forest-900/40 dark:bg-slate-900">
+          <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-dark-emerald-100 bg-white shadow-2xl dark:border-black-forest-900/40 dark:bg-slate-900">
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-black-forest-600 dark:text-dark-emerald-300">
@@ -512,7 +512,7 @@ export default function SalesPage() {
                           key={product.id}
                           type="button"
                           onClick={() => toggleProduct(product)}
-                          className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-black-forest-400 dark:border-slate-800 dark:bg-slate-950"
+                          className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:border-black-forest-400 dark:border-slate-800 dark:bg-slate-950"
                           aria-label={product.name}
                         >
                           <img
@@ -541,8 +541,30 @@ export default function SalesPage() {
                         <EmptySection title={t("noData")} description={t("tapProductCardToAddAtLeastOneItem")} />
                       ) : (
                         selectedEntries.map(({ item, product }) => (
-                          <Card key={item.id} className="space-y-3 border-slate-200 bg-white p-3 shadow-none dark:border-slate-800 dark:bg-slate-900">
-                            <div className="flex items-start gap-3">
+                          <Card key={item.id} className="relative space-y-3 border-slate-200 bg-white p-3 shadow-none dark:border-slate-800 dark:bg-slate-900">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              type="button"
+                              onClick={() => {
+                                if (product) {
+                                  toggleProduct(product);
+                                  return;
+                                }
+
+                                setBill((current) => ({
+                                  ...current,
+                                  items: current.items.filter((entry) => entry.id !== item.id),
+                                }));
+                              }}
+                              className="absolute right-2 top-2 h-8 w-8 rounded-full border border-rose-200 bg-rose-50 p-0 text-rose-600 hover:border-rose-300 hover:bg-rose-100 hover:text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
+                              aria-label="Close item"
+                              title="Close item"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+
+                            <div className="flex items-start gap-3 pr-10">
                               <img
                                 src={resolveProductImage(item.productName, item.image || product?.image)}
                                 alt={item.productName}
@@ -556,24 +578,6 @@ export default function SalesPage() {
                                       {product?.category || t("general")} · {item.unit}
                                     </p>
                                   </div>
-                                  <Button
-                                    variant="danger"
-                                    size="sm"
-                                    type="button"
-                                    onClick={() => {
-                                      if (product) {
-                                        toggleProduct(product);
-                                        return;
-                                      }
-
-                                      setBill((current) => ({
-                                        ...current,
-                                        items: current.items.filter((entry) => entry.id !== item.id),
-                                      }));
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
                                 </div>
                               </div>
                             </div>
@@ -635,7 +639,7 @@ export default function SalesPage() {
                   </Card>
 
                   <div className="space-y-4">
-                    <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                    <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <h4 className="text-lg font-semibold">{t("receipt")}</h4>
@@ -665,7 +669,7 @@ export default function SalesPage() {
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
                         <div className="space-y-2 text-sm">
                           {previewBill.items.length === 0 ? (
                             <p className="text-sm text-slate-500">{t("selectProductsToPreviewBill")}</p>
@@ -725,7 +729,7 @@ export default function SalesPage() {
           className="mx-auto max-w-[190mm] rounded-[28px] border border-slate-200 bg-white p-6 text-slate-900 shadow-[0_18px_60px_rgba(15,23,42,0.08)] print:border-0 print:p-0 print:shadow-none"
         >
           <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black-forest-700 text-white shadow-soft ring-4 ring-dark-emerald-100 print:ring-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-black-forest-700 text-white shadow-soft ring-4 ring-dark-emerald-100 print:ring-0">
               <Salad className="h-5 w-5" />
             </div>
             <div>
@@ -736,11 +740,11 @@ export default function SalesPage() {
           </div>
 
           <div className="grid gap-3 py-4 text-sm sm:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+            <div className="rounded-xl bg-slate-50 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{t("date")}</p>
               <p className="mt-1 font-semibold text-slate-900">{previewBill.date}</p>
             </div>
-            <div className="rounded-2xl bg-slate-50 px-4 py-3 sm:text-right">
+            <div className="rounded-xl bg-slate-50 px-4 py-3 sm:text-right">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                 {t("customerName")}
               </p>
@@ -748,7 +752,7 @@ export default function SalesPage() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="overflow-hidden rounded-xl border border-slate-200">
             <table className="w-full border-collapse text-sm">
               <thead className="bg-slate-50">
                 <tr className="text-left text-[11px] uppercase tracking-[0.2em] text-slate-500">
@@ -784,7 +788,7 @@ export default function SalesPage() {
             </table>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-dark-emerald-200 bg-dark-emerald-50 px-4 py-4">
+          <div className="mt-4 rounded-xl border border-dark-emerald-200 bg-dark-emerald-50 px-4 py-4">
             <div className="flex items-center justify-between gap-4">
               <span className="text-sm font-medium text-slate-600">{t("grandTotal")}</span>
               <span className="text-xl font-semibold text-black-forest-900">

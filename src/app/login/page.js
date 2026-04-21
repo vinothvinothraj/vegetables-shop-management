@@ -60,7 +60,7 @@ export default function LoginPage() {
 
       <div className="relative flex flex-1 items-end justify-center px-0 pb-0 pt-0 sm:px-0 sm:pt-0">
         <div className="w-full sm:max-w-md">
-          <Card className="space-y-6 rounded-t-[2rem] rounded-b-none border-slate-200 bg-white p-5 shadow-[0_28px_90px_rgba(15,23,42,0.22)] dark:border-slate-700 dark:bg-slate-900 sm:rounded-[2rem] sm:p-6">
+          <Card className="space-y-6 rounded-t-xl rounded-b-none border-slate-200 bg-white p-5 shadow-[0_28px_90px_rgba(15,23,42,0.22)] dark:border-slate-700 dark:bg-slate-900 sm:rounded-xl sm:p-6">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow-lg shadow-emerald-500/20">
@@ -76,7 +76,7 @@ export default function LoginPage() {
               <ThemeToggle />
             </div>
 
-            <div className="grid grid-cols-3 gap-2 rounded-2xl bg-slate-100 p-1 dark:bg-slate-950">
+            <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-950">
               {Object.entries(LANGS).map(([code, label]) => {
                 const active = lang === code;
 
