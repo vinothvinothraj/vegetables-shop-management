@@ -12,6 +12,7 @@ import {
   sumBy,
   writeStorage,
 } from "@/lib/storage";
+import { isRemovedProductName, resolveProductImage } from "@/lib/product-catalog";
 import { demoSeedData } from "@/lib/demo-data";
 import { getDictionary } from "@/lib/i18n";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -30,6 +31,10 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
+function isRemovedProduct(product) {
+  return isRemovedProductName(product?.name);
+}
+
 function normalizeProduct(product) {
   return {
     id: product.id || makeId("prod"),
@@ -37,7 +42,7 @@ function normalizeProduct(product) {
     category: normalizeText(product.category),
     unit: normalizeText(product.unit) || "kg",
     pricePerKg: Number(product.pricePerKg || 0),
-    image: product.image || "",
+    image: resolveProductImage(product.name, product.image),
     active: product.active !== false,
   };
 }
@@ -102,8 +107,63 @@ function pickProductName(item, product) {
       item.vegetableName ||
       product?.name ||
       item.name ||
-      ""
+    ""
   );
+}
+
+function mergeProductCollections(currentProducts, seedProducts) {
+  const currentById = new Map();
+  const currentByName = new Map();
+
+  currentProducts.map(normalizeProduct).filter((product) => !isRemovedProduct(product)).forEach((product) => {
+    currentById.set(product.id, product);
+    currentByName.set(product.name.toLowerCase(), product);
+  });
+
+  const merged = seedProducts.map((seed) => {
+    const normalizedSeed = normalizeProduct(seed);
+    if (isRemovedProduct(normalizedSeed)) {
+      return null;
+    }
+    const existing = currentById.get(normalizedSeed.id) || currentByName.get(normalizedSeed.name.toLowerCase());
+
+    if (!existing) {
+      return normalizedSeed;
+    }
+
+    return normalizeProduct({
+      ...normalizedSeed,
+      ...existing,
+      image: existing.image || normalizedSeed.image,
+    });
+  }).filter(Boolean);
+
+  currentProducts.map(normalizeProduct).filter((product) => !isRemovedProduct(product)).forEach((product) => {
+    const exists =
+      merged.some((item) => item.id === product.id) ||
+      merged.some((item) => item.name.toLowerCase() === product.name.toLowerCase());
+
+    if (!exists) {
+      merged.push(product);
+    }
+  });
+
+  return merged;
+}
+
+function stripRemovedPurchases(purchases) {
+  return purchases.filter((purchase) => !isRemovedProductName(purchase.vegetableName) && !isRemovedProductName(purchase.productName));
+}
+
+function stripRemovedSales(sales) {
+  return sales
+    .map((sale) => ({
+      ...sale,
+      items: (sale.items || []).filter(
+        (item) => !isRemovedProductName(item.productName) && !isRemovedProductName(item.vegetableName)
+      ),
+    }))
+    .filter((sale) => sale.items.length > 0);
 }
 
 function normaliseBillItems(items, products) {
@@ -130,7 +190,7 @@ function normaliseBillItems(items, products) {
         qty,
         price,
         total,
-        image: item.image || product?.image || "",
+        image: resolveProductImage(name, item.image || product?.image),
         unit: item.unit || product?.unit || "kg",
       };
     })
@@ -160,7 +220,7 @@ function defaultBillItem(products) {
     qty: 1,
     price: firstProduct?.pricePerKg || 0,
     total: firstProduct?.pricePerKg || 0,
-    image: firstProduct?.image || "",
+    image: resolveProductImage(firstProduct?.name, firstProduct?.image),
     unit: firstProduct?.unit || "kg",
   };
 }
@@ -188,6 +248,10 @@ export function AppProvider({ children }) {
   const safePurchases = Array.isArray(purchases) ? purchases : [];
   const safeSales = Array.isArray(sales) ? sales : [];
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const visibleProducts = useMemo(
+    () => safeProducts.filter((product) => !isRemovedProduct(product)),
+    [safeProducts]
+  );
   const translate = (key) => getDictionary(lang)[key] || getDictionary("en")[key] || key;
 
   useEffect(() => {
@@ -205,21 +269,21 @@ export function AppProvider({ children }) {
     }
 
     if (isMissingOrEmptyArray(STORAGE_KEYS.products) || !Array.isArray(products) || products.length === 0) {
-      setProducts(demoSeedData.products.map(normalizeProduct));
+      setProducts(mergeProductCollections([], demoSeedData.products));
     } else {
-      setProducts((current) => current.map(normalizeProduct));
+      setProducts((current) => mergeProductCollections(current, demoSeedData.products));
     }
 
     if (isMissingOrEmptyArray(STORAGE_KEYS.purchases) || !Array.isArray(purchases) || purchases.length === 0) {
       setPurchases(demoSeedData.purchases.map(normalizePurchase));
     } else {
-      setPurchases((current) => current.map(normalizePurchase));
+      setPurchases((current) => stripRemovedPurchases(current).map(normalizePurchase));
     }
 
     if (isMissingOrEmptyArray(STORAGE_KEYS.sales) || !Array.isArray(sales) || sales.length === 0) {
       setSales(demoSeedData.sales.map(normalizeSale));
     } else {
-      setSales((current) => current.map(normalizeSale));
+      setSales((current) => stripRemovedSales(current).map(normalizeSale));
     }
 
     if (isMissingOrEmptyArray(STORAGE_KEYS.expenses) || !Array.isArray(expenses) || expenses.length === 0) {
@@ -314,7 +378,7 @@ export function AppProvider({ children }) {
   };
 
   const addSale = (sale) => {
-    const items = normaliseBillItems(sale.items, safeProducts);
+    const items = normaliseBillItems(sale.items, visibleProducts);
     const nextSale = {
       id: makeId("sal"),
       date: sale.date,
@@ -328,7 +392,7 @@ export function AppProvider({ children }) {
   };
 
   const updateSale = (id, sale) => {
-    const items = normaliseBillItems(sale.items, safeProducts);
+    const items = normaliseBillItems(sale.items, visibleProducts);
     const nextSale = {
       id,
       date: sale.date,
@@ -410,15 +474,15 @@ export function AppProvider({ children }) {
     router.push("/login");
   };
 
-  const stockByProduct = useMemo(() => {
+    const stockByProduct = useMemo(() => {
     const map = new Map();
 
-    safeProducts.forEach((product) => {
+    visibleProducts.forEach((product) => {
       map.set(product.id, {
         productId: product.id,
         vegetableName: product.name,
         category: product.category,
-        image: product.image,
+        image: resolveProductImage(product.name, product.image),
         unit: product.unit,
         pricePerKg: product.pricePerKg,
         purchased: 0,
@@ -428,16 +492,16 @@ export function AppProvider({ children }) {
 
     safePurchases.forEach((purchase) => {
       const key = purchase.productId || purchase.vegetableName?.trim().toLowerCase();
-      const existing =
-        map.get(key) || {
-          productId: purchase.productId || key,
-          vegetableName: purchase.vegetableName?.trim() || "Unknown",
-          category: "",
-          image: "",
-          unit: "kg",
-          pricePerKg: Number(purchase.pricePerKg || 0),
-          purchased: 0,
-          sold: 0,
+        const existing =
+          map.get(key) || {
+            productId: purchase.productId || key,
+            vegetableName: purchase.vegetableName?.trim() || "Unknown",
+            category: "",
+            image: resolveProductImage(purchase.vegetableName),
+            unit: "kg",
+            pricePerKg: Number(purchase.pricePerKg || 0),
+            purchased: 0,
+            sold: 0,
         };
 
       existing.purchased += Number(purchase.quantity || 0);
@@ -452,7 +516,7 @@ export function AppProvider({ children }) {
             productId: item.productId || key,
             vegetableName: item.vegetableName?.trim() || "Unknown",
             category: "",
-            image: item.image || "",
+            image: resolveProductImage(item.vegetableName, item.image),
             unit: item.unit || "kg",
             pricePerKg: Number(item.price || 0),
             purchased: 0,
@@ -470,7 +534,7 @@ export function AppProvider({ children }) {
         remaining: item.purchased - item.sold,
       }))
       .sort((a, b) => a.vegetableName.localeCompare(b.vegetableName));
-  }, [safeProducts, safePurchases, safeSales]);
+  }, [safePurchases, safeSales, visibleProducts]);
 
   const totals = useMemo(() => {
     const today = new Date();
@@ -498,9 +562,9 @@ export function AppProvider({ children }) {
       profit,
       lowStock: stockByProduct.filter((item) => item.remaining <= 5),
       monthStart,
-      totalProducts: safeProducts.length,
+      totalProducts: visibleProducts.length,
     };
-  }, [safeExpenses, safePurchases, safeSales, stockByProduct, safeProducts.length]);
+  }, [safeExpenses, safePurchases, safeSales, stockByProduct, visibleProducts.length]);
 
   const reportsForDate = (dateString, productId = "") => {
     const target = dateString ? new Date(dateString) : new Date();
@@ -561,7 +625,7 @@ export function AppProvider({ children }) {
   };
 
   const value = {
-    products: safeProducts,
+    products: visibleProducts,
     purchases: safePurchases,
     sales: safeSales,
     expenses: safeExpenses,
@@ -591,8 +655,8 @@ export function AppProvider({ children }) {
     reportsForDate,
     reportsForMonth,
     formatCurrency,
-    defaultBillItem: () => defaultBillItem(safeProducts),
-    getProductById: (id) => safeProducts.find((item) => item.id === id),
+    defaultBillItem: () => defaultBillItem(visibleProducts),
+    getProductById: (id) => visibleProducts.find((item) => item.id === id),
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

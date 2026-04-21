@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { createPlaceholderImage } from "@/lib/storage";
+import { resolveProductImage } from "@/lib/product-catalog";
 import { Button, Card, Input } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -66,7 +67,7 @@ export function ProductPicker({
         <span className="flex min-w-0 items-center gap-3">
           {selectedProduct ? (
             <img
-              src={selectedProduct.image || createPlaceholderImage(selectedProduct.name)}
+              src={resolveProductImage(selectedProduct.name, selectedProduct.image)}
               alt={selectedProduct.name}
               className="h-7 w-7 rounded-lg object-cover"
             />
@@ -120,7 +121,7 @@ export function ProductPicker({
                   )}
                 >
                   <img
-                    src={item.image || createPlaceholderImage(item.name)}
+                    src={resolveProductImage(item.name, item.image)}
                     alt={item.name}
                     className="h-10 w-10 rounded-lg object-cover"
                   />

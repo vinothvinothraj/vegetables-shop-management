@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, Search } from "lucide-react";
 import { useApp } from "@/context/app-context";
 import { Badge, Card, EmptyState, Input, SectionTitle, Select, StatCard, TableShell } from "@/components/ui";
-import { createPlaceholderImage } from "@/lib/storage";
+import { resolveProductImage } from "@/lib/product-catalog";
 
 export default function StockPage() {
   const { stockByProduct, purchases, sales, t } = useApp();
@@ -96,7 +96,7 @@ export default function StockPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <img
-                          src={item.image || createPlaceholderImage(item.vegetableName)}
+                          src={resolveProductImage(item.vegetableName, item.image)}
                           alt={item.vegetableName}
                           className="h-12 w-12 rounded-xl object-cover"
                         />

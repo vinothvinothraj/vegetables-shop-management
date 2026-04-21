@@ -78,8 +78,8 @@ export default function ExpensesPage() {
 
     const payload = {
       ...form,
-      type: form.type.trim(),
-      note: form.note.trim(),
+      type: String(form.type || "").trim(),
+      note: String(form.note || "").trim(),
     };
 
     if (editingId) {
@@ -97,7 +97,7 @@ export default function ExpensesPage() {
     setEditingId(item.id);
     setForm({
       date: item.date,
-      type: item.type,
+      type: item.type ?? "",
       amount: item.amount,
       note: item.note,
     });

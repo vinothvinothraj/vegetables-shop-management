@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useApp } from "@/context/app-context";
 import { Badge, Button, Card, EmptyState, Input, Select, TableShell } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { createPlaceholderImage } from "@/lib/storage";
+import { resolveProductImage } from "@/lib/product-catalog";
 
 function makeItem(product) {
   return {
@@ -17,7 +17,7 @@ function makeItem(product) {
     qty: 1,
     price: product.pricePerKg,
     total: product.pricePerKg,
-    image: product.image,
+    image: resolveProductImage(product.name, product.image),
     unit: product.unit,
   };
 }
@@ -303,7 +303,7 @@ export default function SalesPage() {
                   }`}
                 >
                   <img
-                    src={product.image || createPlaceholderImage(product.name)}
+                    src={resolveProductImage(product.name, product.image)}
                     alt={product.name}
                     className="h-full w-full object-cover"
                   />
@@ -339,7 +339,7 @@ export default function SalesPage() {
               >
                   <div className="relative mb-3 aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
                     <img
-                      src={product.image || createPlaceholderImage(product.name)}
+                      src={resolveProductImage(product.name, product.image)}
                       alt={product.name}
                       className="h-full w-full object-cover"
                     />
@@ -516,7 +516,7 @@ export default function SalesPage() {
                           aria-label={product.name}
                         >
                           <img
-                            src={product.image || createPlaceholderImage(product.name)}
+                            src={resolveProductImage(product.name, product.image)}
                             alt={product.name}
                             className="h-full w-full object-cover"
                           />
@@ -544,7 +544,7 @@ export default function SalesPage() {
                           <Card key={item.id} className="space-y-3 border-slate-200 bg-white p-3 shadow-none dark:border-slate-800 dark:bg-slate-900">
                             <div className="flex items-start gap-3">
                               <img
-                                src={item.image || product?.image || createPlaceholderImage(item.productName)}
+                                src={resolveProductImage(item.productName, item.image || product?.image)}
                                 alt={item.productName}
                                 className="h-14 w-14 rounded-xl object-cover"
                               />

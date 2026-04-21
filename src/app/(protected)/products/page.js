@@ -7,7 +7,7 @@ import { useApp } from "@/context/app-context";
 import { Badge, Button, Card, EmptyState, Input, SectionTitle, Select, TableShell } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Modal } from "@/components/modal";
-import { createPlaceholderImage } from "@/lib/storage";
+import { resolveProductImage } from "@/lib/product-catalog";
 
 const emptyForm = {
   name: "",
@@ -113,10 +113,11 @@ export default function ProductsPage() {
 
     const payload = {
       ...form,
-      name: form.name.trim(),
-      category: form.category.trim(),
+      name: String(form.name || "").trim(),
+      category: String(form.category || "").trim(),
+      unit: String(form.unit || "kg").trim() || "kg",
       pricePerKg: Number(form.pricePerKg),
-      image: form.image || createPlaceholderImage(form.name.trim()),
+      image: resolveProductImage(String(form.name || "").trim(), form.image),
       active: Boolean(form.active),
     };
 
@@ -135,8 +136,8 @@ export default function ProductsPage() {
     setEditingId(item.id);
     setForm({
       name: item.name,
-      category: item.category,
-      unit: item.unit,
+      category: item.category ?? "",
+      unit: item.unit ?? "kg",
       pricePerKg: item.pricePerKg,
       image: item.image || "",
       active: item.active,
@@ -232,7 +233,7 @@ export default function ProductsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <img
-                            src={item.image || createPlaceholderImage(item.name)}
+                            src={resolveProductImage(item.name, item.image)}
                             alt={item.name}
                             className="h-12 w-12 rounded-xl object-cover"
                           />
@@ -325,6 +326,8 @@ export default function ProductsPage() {
               <div className="h-14 w-14 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
                 {form.image ? (
                   <img src={form.image} alt={form.name || "product"} className="h-full w-full object-cover" />
+                ) : form.name ? (
+                  <img src={resolveProductImage(form.name)} alt={form.name} className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-slate-400">
                     <ImagePlus className="h-5 w-5" />

@@ -73,13 +73,16 @@ export function Textarea({ className, ...props }) {
   );
 }
 
-export function Select({ className, children, ...props }) {
+export function Select({ className, children, value, ...props }) {
+  const selectValueProps = value === null ? { value: "" } : value === undefined ? {} : { value };
+
   return (
     <select
       className={cn(
         "h-11 w-full rounded-xl border border-dark-emerald-100 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-black-forest-500 focus:ring-2 focus:ring-dark-emerald-100 dark:border-black-forest-900/60 dark:bg-slate-900 dark:text-slate-50 dark:focus:ring-black-forest-950",
         className
       )}
+      {...selectValueProps}
       {...props}
     >
       {children}

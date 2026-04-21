@@ -8,7 +8,7 @@ import { Badge, Button, Card, EmptyState, Input, SectionTitle, Select, TableShel
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Modal } from "@/components/modal";
 import { ProductPicker } from "@/components/product-picker";
-import { createPlaceholderImage } from "@/lib/storage";
+import { resolveProductImage } from "@/lib/product-catalog";
 
 const emptyForm = {
   date: new Date().toISOString().slice(0, 10),
@@ -215,8 +215,8 @@ export default function PurchasesPage() {
                         <td className="px-4 py-3">{item.supplierName}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <img
-                              src={product?.image || createPlaceholderImage(item.vegetableName)}
+                          <img
+                              src={resolveProductImage(item.vegetableName, product?.image)}
                               alt={item.vegetableName}
                               className="h-10 w-10 rounded-xl object-cover"
                             />

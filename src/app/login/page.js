@@ -134,7 +134,7 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full rounded-b-none border-t-2 border-emerald-600 bg-white px-4 py-3 text-center text-[11px] font-medium tracking-wide text-emerald-900 sm:text-xs dark:border-emerald-500 dark:bg-slate-950 dark:text-emerald-100">
-        vRsolutions pvt ltd - All rights reserved
+        copy@2026 - All rights reserved
       </div>
     </div>
   );

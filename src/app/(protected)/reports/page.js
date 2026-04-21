@@ -19,7 +19,7 @@ import { useApp } from "@/context/app-context";
 import { Badge, Button, Card, Input, Select, StatCard, TableShell } from "@/components/ui";
 import { ProductPicker } from "@/components/product-picker";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { createPlaceholderImage } from "@/lib/storage";
+import { resolveProductImage } from "@/lib/product-catalog";
 import { demoDefaultReportDate } from "@/lib/demo-data";
 
 function escapeCsv(value) {
@@ -275,7 +275,7 @@ export default function ReportsPage() {
           {selectedProduct ? (
             <div className="flex items-center gap-3 rounded-2xl bg-dark-emerald-50 p-3 dark:bg-black-forest-950/40">
               <img
-                src={selectedProduct.image || createPlaceholderImage(selectedProduct.name)}
+                src={resolveProductImage(selectedProduct.name, selectedProduct.image)}
                 alt={selectedProduct.name}
                 className="h-12 w-12 rounded-xl object-cover"
               />
