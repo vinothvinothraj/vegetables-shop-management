@@ -62,17 +62,28 @@ function normalizeSale(sale) {
     customerName: normalizeText(sale.customerName),
     grandTotal: Number(
       sale.grandTotal ||
-        sumBy(sale.items || [], (item) => Number(item.total || Number(item.qty || 0) * Number(item.price || 0)))
+        sumBy(sale.items || [], (item) => Number(item.total || getSaleItemTotal(item)))
     ),
     items: Array.isArray(sale.items)
       ? sale.items.map((item) => ({
           ...item,
           qty: Number(item.qty || 0),
           price: Number(item.price || 0),
-          total: Number(item.total || Number(item.qty || 0) * Number(item.price || 0)),
+          weightUnit: item.weightUnit === "g" ? "g" : "kg",
+          total: Number(item.total || getSaleItemTotal(item)),
         }))
       : [],
   };
+}
+
+function getSaleQuantityInKg(item) {
+  const qty = Number(item.qty || 0);
+  return item.weightUnit === "g" ? qty / 1000 : qty;
+}
+
+function getSaleItemTotal(item) {
+  const factor = item.weightUnit === "g" ? 100 : 1;
+  return (Number(item.qty || 0) * Number(item.price || 0)) / factor;
 }
 
 function normalizeExpense(expense) {
@@ -176,7 +187,8 @@ function normaliseBillItems(items, products) {
       const name = pickProductName(item, product);
       const qty = Number(item.qty || 0);
       const price = Number(item.price ?? product?.pricePerKg ?? 0);
-      const total = qty * price;
+      const weightUnit = item.weightUnit === "g" ? "g" : "kg";
+      const total = (qty * price) / (weightUnit === "g" ? 100 : 1);
 
       if (!name || qty <= 0 || price <= 0) {
         return null;
@@ -190,6 +202,7 @@ function normaliseBillItems(items, products) {
         qty,
         price,
         total,
+        weightUnit,
         image: resolveProductImage(name, item.image || product?.image),
         unit: item.unit || product?.unit || "kg",
       };
@@ -523,7 +536,7 @@ export function AppProvider({ children }) {
             sold: 0,
           };
 
-        existing.sold += Number(item.qty || 0);
+        existing.sold += getSaleQuantityInKg(item);
         map.set(key, existing);
       });
     });

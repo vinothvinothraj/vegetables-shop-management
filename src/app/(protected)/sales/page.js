@@ -15,11 +15,28 @@ function makeItem(product) {
     productName: product.name,
     vegetableName: product.name,
     qty: 1,
+    weightUnit: "kg",
     price: product.pricePerKg,
     total: product.pricePerKg,
     image: resolveProductImage(product.name, product.image),
     unit: product.unit,
   };
+}
+
+function getQuantityStep(weightUnit) {
+  return weightUnit === "g" ? 100 : 1;
+}
+
+function getUnitPriceFactor(weightUnit) {
+  return weightUnit === "g" ? 100 : 1;
+}
+
+function getLineTotal(item) {
+  const qty = Number(item.qty || 0);
+  const price = Number(item.price || 0);
+  const factor = getUnitPriceFactor(item.weightUnit);
+
+  return (qty * price) / factor;
 }
 
 function EmptySection({ title, description }) {
@@ -48,7 +65,7 @@ export default function SalesPage() {
   const printRef = useRef(null);
 
   const subtotal = useMemo(
-    () => bill.items.reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.price || 0), 0),
+    () => bill.items.reduce((sum, item) => sum + getLineTotal(item), 0),
     [bill.items]
   );
 
@@ -139,7 +156,10 @@ export default function SalesPage() {
               [field]: value,
               total:
                 field === "qty" || field === "price"
-                  ? Number(field === "qty" ? value : item.qty) * Number(field === "price" ? value : item.price)
+                  ? getLineTotal({
+                      ...item,
+                      [field]: value,
+                    })
                   : item.total,
             }
           : item
@@ -154,11 +174,45 @@ export default function SalesPage() {
         item.id === id
           ? {
               ...item,
-              qty: Math.max(0.1, Number(item.qty || 0) + delta),
-              total: Math.max(0.1, Number(item.qty || 0) + delta) * Number(item.price || 0),
+              qty: Math.max(getQuantityStep(item.weightUnit), Number(item.qty || 0) + delta * getQuantityStep(item.weightUnit)),
+              total: getLineTotal({
+                ...item,
+                qty: Math.max(
+                  getQuantityStep(item.weightUnit),
+                  Number(item.qty || 0) + delta * getQuantityStep(item.weightUnit)
+                ),
+              }),
             }
           : item
       ),
+    }));
+  };
+
+  const toggleItemWeightUnit = (id) => {
+    setBill((current) => ({
+      ...current,
+      items: current.items.map((item) => {
+        if (item.id !== id) {
+          return item;
+        }
+
+        const nextUnit = item.weightUnit === "g" ? "kg" : "g";
+        const nextQty = nextUnit === "g" ? Number(item.qty || 0) * 100 : Number(item.qty || 0) / 100;
+        const nextPrice = nextUnit === "g" ? Number(item.price || 0) / 10 : Number(item.price || 0) * 10;
+
+        return {
+          ...item,
+          weightUnit: nextUnit,
+          qty: Number(nextQty.toFixed(3)),
+          price: Number(nextPrice.toFixed(2)),
+          total: getLineTotal({
+            ...item,
+            weightUnit: nextUnit,
+            qty: Number(nextQty.toFixed(3)),
+            price: Number(nextPrice.toFixed(2)),
+          }),
+        };
+      }),
     }));
   };
 
@@ -201,7 +255,11 @@ export default function SalesPage() {
       customerName: sale.customerName || "",
       items: sale.items.map((item) => ({
         ...item,
-        total: Number(item.qty || 0) * Number(item.price || 0),
+        weightUnit: item.weightUnit || "kg",
+        total: getLineTotal({
+          ...item,
+          weightUnit: item.weightUnit || "kg",
+        }),
       })),
     });
     setIsCartOpen(true);
@@ -214,7 +272,11 @@ export default function SalesPage() {
       customerName: sale.customerName || "",
       items: sale.items.map((item) => ({
         ...item,
-        total: Number(item.qty || 0) * Number(item.price || 0),
+        weightUnit: item.weightUnit || "kg",
+        total: getLineTotal({
+          ...item,
+          weightUnit: item.weightUnit || "kg",
+        }),
       })),
     });
     setIsCartOpen(true);
@@ -541,50 +603,67 @@ export default function SalesPage() {
                         <EmptySection title={t("noData")} description={t("tapProductCardToAddAtLeastOneItem")} />
                       ) : (
                         selectedEntries.map(({ item, product }) => (
-                          <Card key={item.id} className="relative space-y-3 border-slate-200 bg-white p-3 shadow-none dark:border-slate-800 dark:bg-slate-900">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              type="button"
-                              onClick={() => {
-                                if (product) {
-                                  toggleProduct(product);
-                                  return;
-                                }
-
-                                setBill((current) => ({
-                                  ...current,
-                                  items: current.items.filter((entry) => entry.id !== item.id),
-                                }));
-                              }}
-                              className="absolute right-2 top-2 h-8 w-8 rounded-full border border-rose-200 bg-rose-50 p-0 text-rose-600 hover:border-rose-300 hover:bg-rose-100 hover:text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
-                              aria-label="Close item"
-                              title="Close item"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-
-                            <div className="flex items-start gap-3 pr-10">
-                              <img
-                                src={resolveProductImage(item.productName, item.image || product?.image)}
-                                alt={item.productName}
-                                className="h-14 w-14 rounded-xl object-cover"
-                              />
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <p className="truncate font-medium">{item.productName}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                      {product?.category || t("general")} · {item.unit}
-                                    </p>
-                                  </div>
+                          <Card
+                            key={item.id}
+                            className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_14px_28px_rgba(15,23,42,0.10)] dark:border-slate-800 dark:bg-slate-900"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex min-w-0 items-start gap-3">
+                                <img
+                                  src={resolveProductImage(item.productName, item.image || product?.image)}
+                                  alt={item.productName}
+                                  className="h-14 w-14 shrink-0 rounded-xl object-cover"
+                                />
+                                <div className="min-w-0 pt-1">
+                                  <p className="truncate text-base font-semibold text-slate-900 dark:text-slate-50">
+                                    {item.productName}
+                                  </p>
+                                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                    {product?.category || t("general")}
+                                  </p>
                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2 pt-0">
+                                <Button
+                                  variant={item.weightUnit === "g" ? "default" : "secondary"}
+                                  size="sm"
+                                  type="button"
+                                  onClick={() => toggleItemWeightUnit(item.id)}
+                                  className="h-8 min-w-14 rounded-full px-3 text-[11px] font-semibold uppercase tracking-[0.18em]"
+                                  aria-label={item.weightUnit === "g" ? "Switch to kg" : "Switch to g"}
+                                  title={item.weightUnit === "g" ? "Switch to kg" : "Switch to g"}
+                                >
+                                  {item.weightUnit === "g" ? "g" : "kg"}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  type="button"
+                                  onClick={() => {
+                                    if (product) {
+                                      toggleProduct(product);
+                                      return;
+                                    }
+
+                                    setBill((current) => ({
+                                      ...current,
+                                      items: current.items.filter((entry) => entry.id !== item.id),
+                                    }));
+                                  }}
+                                  className="h-8 w-8 rounded-full border border-rose-200 bg-rose-50 p-0 text-rose-600 hover:border-rose-300 hover:bg-rose-100 hover:text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
+                                  aria-label="Close item"
+                                  title="Close item"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2">
                               <div>
-                                <label className="mb-2 block text-xs font-medium text-slate-500">{t("quantity")}</label>
+                                <label className="mb-2 block text-xs font-medium text-slate-500">
+                                  {t("quantity")} ({item.weightUnit || "kg"})
+                                </label>
                                 <div className="flex items-center overflow-hidden rounded-xl border border-dark-emerald-100 bg-white shadow-sm dark:border-black-forest-900/60 dark:bg-slate-950">
                                   <Button
                                     variant="ghost"
@@ -592,15 +671,15 @@ export default function SalesPage() {
                                     type="button"
                                     className="h-11 w-11 rounded-none border-r border-dark-emerald-100 px-0 dark:border-black-forest-900/60"
                                     onClick={() => addQuantity(item.id, -1)}
-                                    disabled={Number(item.qty || 0) <= 0.1}
+                                    disabled={Number(item.qty || 0) <= getQuantityStep(item.weightUnit)}
                                     aria-label="Decrease quantity"
                                   >
                                     <Minus className="h-4 w-4" />
                                   </Button>
                                   <Input
                                     type="number"
-                                    min="0"
-                                    step="0.1"
+                                    min={getQuantityStep(item.weightUnit)}
+                                    step={getQuantityStep(item.weightUnit)}
                                     value={item.qty}
                                     onChange={(e) => updateItem(item.id, "qty", e.target.value)}
                                     className="h-11 rounded-none border-0 bg-transparent px-0 text-center shadow-none focus:ring-0"
@@ -629,7 +708,7 @@ export default function SalesPage() {
                               </div>
                               <div>
                                 <label className="mb-2 block text-xs font-medium text-slate-500">{t("total")}</label>
-                                <Input value={formatCurrency(Number(item.qty || 0) * Number(item.price || 0))} readOnly />
+                                <Input value={formatCurrency(getLineTotal(item))} readOnly />
                               </div>
                             </div>
                           </Card>
@@ -677,9 +756,9 @@ export default function SalesPage() {
                             previewBill.items.map((item) => (
                               <div key={item.id} className="flex items-center justify-between gap-3">
                                 <span className="min-w-0 truncate">
-                                  {item.productName} x {item.qty}
+                                  {item.productName} x {item.qty} {item.weightUnit || "kg"}
                                 </span>
-                                <span className="shrink-0">{formatCurrency(Number(item.qty || 0) * Number(item.price || 0))}</span>
+                                <span className="shrink-0">{formatCurrency(getLineTotal(item))}</span>
                               </div>
                             ))
                           )}
@@ -687,7 +766,7 @@ export default function SalesPage() {
 
                         <div className="mt-3 flex items-center justify-between border-t border-dashed border-slate-200 pt-3 text-base font-semibold dark:border-slate-800">
                           <span>{t("grandTotal")}</span>
-                          <span>{formatCurrency(previewBill.grandTotal || 0)}</span>
+                          <span>{formatCurrency(subtotal || 0)}</span>
                         </div>
                       </div>
 
@@ -760,9 +839,7 @@ export default function SalesPage() {
               <thead className="bg-slate-50">
                 <tr className="text-left text-[11px] uppercase tracking-[0.2em] text-slate-500">
                   <th className="py-3 pl-4 pr-3 font-medium">{t("product")}</th>
-                  <th className="py-3 px-3 font-medium text-right">
-                    {t("quantity")} (kg)
-                  </th>
+                  <th className="py-3 px-3 font-medium text-right">{t("quantity")}</th>
                   <th className="py-3 px-3 font-medium text-right">
                     {t("price")} (LKR)
                   </th>
@@ -785,10 +862,10 @@ export default function SalesPage() {
                         <div className="font-semibold text-slate-900">{item.productName}</div>
                         <div className="mt-1 text-xs text-slate-500">{item.unit}</div>
                       </td>
-                      <td className="px-3 py-4 text-right font-medium">{Number(item.qty || 0)}</td>
+                      <td className="px-3 py-4 text-right font-medium">{Number(item.qty || 0)} {item.weightUnit || "kg"}</td>
                       <td className="px-3 py-4 text-right font-medium">{Number(item.price || 0).toFixed(2)}</td>
                       <td className="px-4 py-4 text-right font-semibold text-slate-900">
-                        {(Number(item.qty || 0) * Number(item.price || 0)).toFixed(2)}
+                        {getLineTotal(item).toFixed(2)}
                       </td>
                     </tr>
                   ))
@@ -801,7 +878,7 @@ export default function SalesPage() {
             <div className="flex items-center justify-between gap-4">
               <span className="text-sm font-medium text-slate-600">{t("grandTotal")}</span>
               <span className="text-xl font-semibold text-black-forest-900">
-                {formatCurrency(previewBill.grandTotal || subtotal || 0)}
+                {formatCurrency(subtotal || 0)}
               </span>
             </div>
           </div>
