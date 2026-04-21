@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Check, Edit, Minus, Plus, Printer, Salad, Search, ShoppingCart, Trash2, X } from "lucide-react";
+import { BadgeDollarSign, Check, Edit, Minus, Plus, Printer, Search, ShoppingCart, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/context/app-context";
 import { Badge, Button, Card, EmptyState, Input, Select, TableShell } from "@/components/ui";
@@ -728,18 +728,21 @@ export default function SalesPage() {
           ref={printRef}
           className="mx-auto max-w-[190mm] rounded-[28px] border border-slate-200 bg-white p-6 text-slate-900 shadow-[0_18px_60px_rgba(15,23,42,0.08)] print:border-0 print:p-0 print:shadow-none"
         >
-          <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-black-forest-700 text-white shadow-soft ring-4 ring-dark-emerald-100 print:ring-0">
-              <Salad className="h-5 w-5" />
+          <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-2">
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo3.png"
+                alt="Veggie Shop"
+                className="h-16 w-auto object-contain print:block"
+              />
             </div>
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-dark-emerald-700">
-                {t("appName")}
-              </p>
+            <div className="flex h-16 items-center justify-center gap-2 rounded-lg border border-emerald-600 px-4 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700 print:border-emerald-600 print:text-emerald-700">
+              <BadgeDollarSign className="h-4 w-4 text-emerald-600" />
+              Cash received
             </div>
           </div>
 
-          <div className="grid gap-3 py-4 text-sm sm:grid-cols-2">
+          <div className="grid gap-3 py-3 text-sm sm:grid-cols-2">
             <div className="rounded-xl bg-slate-50 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{t("date")}</p>
               <p className="mt-1 font-semibold text-slate-900">{previewBill.date}</p>
@@ -757,9 +760,15 @@ export default function SalesPage() {
               <thead className="bg-slate-50">
                 <tr className="text-left text-[11px] uppercase tracking-[0.2em] text-slate-500">
                   <th className="py-3 pl-4 pr-3 font-medium">{t("product")}</th>
-                  <th className="py-3 px-3 font-medium text-right">{t("quantity")}</th>
-                  <th className="py-3 px-3 font-medium text-right">{t("price")}</th>
-                  <th className="py-3 pl-3 pr-4 font-medium text-right">{t("total")}</th>
+                  <th className="py-3 px-3 font-medium text-right">
+                    {t("quantity")} (kg)
+                  </th>
+                  <th className="py-3 px-3 font-medium text-right">
+                    {t("price")} (LKR)
+                  </th>
+                  <th className="py-3 pl-3 pr-4 font-medium text-right">
+                    {t("total")} (LKR)
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white">
@@ -776,10 +785,10 @@ export default function SalesPage() {
                         <div className="font-semibold text-slate-900">{item.productName}</div>
                         <div className="mt-1 text-xs text-slate-500">{item.unit}</div>
                       </td>
-                      <td className="px-3 py-4 text-right font-medium">{item.qty}</td>
-                      <td className="px-3 py-4 text-right font-medium">{formatCurrency(Number(item.price || 0))}</td>
+                      <td className="px-3 py-4 text-right font-medium">{Number(item.qty || 0)}</td>
+                      <td className="px-3 py-4 text-right font-medium">{Number(item.price || 0).toFixed(2)}</td>
                       <td className="px-4 py-4 text-right font-semibold text-slate-900">
-                        {formatCurrency(Number(item.qty || 0) * Number(item.price || 0))}
+                        {(Number(item.qty || 0) * Number(item.price || 0)).toFixed(2)}
                       </td>
                     </tr>
                   ))

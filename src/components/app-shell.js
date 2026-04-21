@@ -7,7 +7,6 @@ import {
   LogOut,
   NotebookTabs,
   PackageSearch,
-  Salad,
   Store,
   ShoppingBasket,
   ShoppingCart,
@@ -37,13 +36,11 @@ export function AppShell({ children }) {
       <header className="fixed inset-x-0 top-0 z-40 border-b border-dark-emerald-100/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90 print:hidden">
         <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between gap-2 px-3 sm:h-18 sm:px-4 lg:px-6">
           <Link href="/reports" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-black-forest-700 text-white shadow-soft ring-4 ring-dark-emerald-100 dark:ring-black-forest-950 sm:h-10 sm:w-10">
-              <Salad className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold leading-none sm:text-base">{t("appName")}</p>
-              <p className="mt-1 hidden text-[11px] text-slate-500 dark:text-slate-400 sm:block">Live management workspace</p>
-            </div>
+            <img
+              src="/logo3.png"
+              alt={t("appName")}
+              className="h-10 w-auto object-contain sm:h-12"
+            />
           </Link>
 
           <div className="flex items-center gap-2">

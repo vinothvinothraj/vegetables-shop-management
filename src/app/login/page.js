@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { STORAGE_KEYS, readStorage } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import { LANGS } from "@/lib/i18n";
-import bgImage from "../../../bg-2.png";
+const bgImage = "/main-bg.png";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,7 +53,8 @@ export default function LoginPage() {
         alt=""
         fill
         priority
-        className="absolute inset-0 -z-20 object-cover object-center"
+        className="absolute inset-0 -z-20 object-cover"
+        style={{ objectPosition: "center center", transform: "translateY(-8rem)" }}
       />
       <div className="absolute inset-0 -z-10 bg-white/18 dark:bg-slate-950/48" />
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(15,23,42,0.08),transparent_42%)] dark:bg-[radial-gradient(circle_at_center,rgba(15,23,42,0.28),transparent_42%)]" />
@@ -67,10 +68,9 @@ export default function LoginPage() {
                   <Leaf className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
+                  <p className="text-lg font-bold uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-300">
                     {t("login")}
                   </p>
-                  <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t("appName")}</h1>
                 </div>
               </div>
               <ThemeToggle />
